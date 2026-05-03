@@ -113,7 +113,7 @@
       <div class="card">
         <div class="card-body">
           <div class="table-wrapper"><table>
-            <thead><tr><th>Book ID</th><th>Days Late</th><th>Amount</th><th>Status</th></tr></thead>
+            <thead><tr><th>Book</th><th>Days Late</th><th>Amount (₹)</th><th>Status</th></tr></thead>
             <tbody id="fines-body"><tr><td colspan="4"><div class="empty-state"><div class="empty-icon">💰</div><p>No fines</p></div></td></tr></tbody>
           </table></div>
         </div>
@@ -280,10 +280,10 @@
     if (!fines.length) { tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">💰</div><p>No fines on record</p></div></td></tr>`; return; }
     tbody.innerHTML = fines.map(f => `
       <tr>
-        <td><small>${f.BookID}</small></td>
-        <td>${f.DaysLate} days</td>
-        <td>₹${f.Amount}</td>
-        <td>${statusBadge(f.Status)}</td>
+        <td><strong>${escHtml(String(f.BookTitle||f.BookID||''))}</strong></td>
+        <td style="color:var(--clr-danger);font-weight:600">${Number(f.DaysLate)||0} days</td>
+        <td style="font-weight:600">₹${Number(f.Amount)||0}</td>
+        <td>${statusBadge(String(f.Status||''))}</td>
       </tr>`).join('');
   }
 
