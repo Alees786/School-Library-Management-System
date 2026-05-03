@@ -10,24 +10,16 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxqIItauWcjYDLgtWdqNArY
 const api = {
   async call(data) {
     try {
-      // Google Apps Script blocks requests that trigger a CORS preflight.
-      // Sending as application/x-www-form-urlencoded keeps it a "simple
-      // request" (no preflight) BUT Apps Script only reliably reads JSON
-      // from e.postData.contents — so we use no-cors mode with a FormData
-      // workaround: POST the JSON as a form field, OR use the URL param
-      // approach below which works perfectly with doGet + e.parameter.
-      //
-      // Strategy: POST with text/plain body (simple request, no preflight).
-      // The body is still valid JSON — Apps Script reads it via
-      // e.postData.contents exactly as before.
       const res = await fetch(API_URL, {
         method: 'POST',
-        // 'text/plain' is a CORS-safe content type → no preflight fired
         headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
         body: JSON.stringify(data),
-        redirect: 'follow'   // follow the GAS redirect automatically
+        redirect: 'follow'
       });
-      const json = await res.json();
+      const text = await res.text();
+      let json;
+      try { json = JSON.parse(text); }
+      catch { throw new Error('Invalid server response: ' + text.slice(0, 100)); }
       if (!json.success && json.error) throw new Error(json.error);
       return json;
     } catch (err) {
