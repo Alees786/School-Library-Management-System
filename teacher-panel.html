@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Teacher Panel — Library</title>
+<title>Teacher Panel — Nusrath Secondary School Library</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <nav class="navbar">
-  <a class="navbar-brand" href="index.html"><span class="brand-icon">📚</span> School Library</a>
+  <a class="navbar-brand" href="index.html"><span class="brand-icon">📚</span> Nusrath School Library</a>
   <div class="navbar-actions" id="nav-user"></div>
 </nav>
 
@@ -244,7 +244,7 @@
     const fines = res.fines||[];
     const total = fines.filter(f=>f.Status==='Unpaid').reduce((s,f)=>s+Number(f.Amount||0),0);
     document.getElementById('fine-alert').innerHTML = total>0
-      ? `<div class="alert alert-danger">₹${total} unpaid fines. Pay at the library desk.</div>`
+      ? `<div class="alert alert-danger">₹${total} unpaid fines. Pay at the Nusrath library desk.</div>`
       : `<div class="alert alert-success">No unpaid fines!</div>`;
     const tbody = document.getElementById('fines-body');
     if (!fines.length) { tbody.innerHTML=`<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">💰</div><p>No fines</p></div></td></tr>`; return; }
