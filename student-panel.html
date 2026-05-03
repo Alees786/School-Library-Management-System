@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Panel — Library</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html"><span class="brand-icon">📚</span> School Library</a>
+  <div class="navbar-actions" id="nav-user"></div>
+</nav>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <ul class="sidebar-menu">
+      <li><span class="sidebar-section">Menu</span></li>
+      <li><a href="#" class="active" onclick="showSection('dashboard')"><span class="icon">🏠</span> Dashboard</a></li>
+      <li><a href="#" onclick="showSection('catalog')"><span class="icon">🔍</span> Browse Books</a></li>
+      <li><a href="#" onclick="showSection('my-books')"><span class="icon">📖</span> My Borrowed Books</a></li>
+      <li><a href="#" onclick="showSection('reservations')"><span class="icon">🔖</span> My Reservations</a></li>
+      <li><a href="#" onclick="showSection('fines')"><span class="icon">💰</span> My Fines</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+
+    <!-- Dashboard -->
+    <section id="sec-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Welcome back!</div>
+          <div class="page-subtitle" id="dash-subtitle">Loading your library summary...</div>
+        </div>
+      </div>
+      <div class="stats-grid" id="student-stats"></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Currently Borrowed Books</span></div>
+        <div class="card-body">
+          <div class="table-wrapper"><table id="dash-books-table">
+            <thead><tr><th>Book</th><th>Issued</th><th>Due Date</th><th>Status</th></tr></thead>
+            <tbody id="dash-books-body"><tr><td colspan="4" class="empty-state"><p>Loading...</p></td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Catalog -->
+    <section id="sec-catalog" style="display:none">
+      <div class="page-header">
+        <div><div class="page-title">Browse Catalog</div><div class="page-subtitle">Search and reserve books</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="search-bar">
+            <div class="search-input-wrap">
+              <span class="icon">🔍</span>
+              <input type="text" class="form-control search-input" id="catalog-search" placeholder="Search title, author, genre, ISBN…">
+            </div>
+            <button class="btn btn-primary" onclick="searchBooks()">Search</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-wrapper"><table>
+            <thead><tr><th>Title</th><th>Author</th><th>Genre</th><th>Location</th><th>Availability</th><th>Action</th></tr></thead>
+            <tbody id="catalog-body"><tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📚</div><p>Search for books above</p></div></td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- My Books -->
+    <section id="sec-my-books" style="display:none">
+      <div class="page-header">
+        <div><div class="page-title">Borrowed Books</div><div class="page-subtitle">Books you have checked out</div></div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrapper"><table>
+            <thead><tr><th>Book</th><th>Issued</th><th>Due Date</th><th>Status</th></tr></thead>
+            <tbody id="my-books-body"><tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📖</div><p>No books borrowed</p></div></td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reservations -->
+    <section id="sec-reservations" style="display:none">
+      <div class="page-header">
+        <div><div class="page-title">My Reservations</div><div class="page-subtitle">Books you have reserved</div></div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrapper"><table>
+            <thead><tr><th>Book</th><th>Reserved On</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="res-body"><tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🔖</div><p>No reservations</p></div></td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fines -->
+    <section id="sec-fines" style="display:none">
+      <div class="page-header">
+        <div><div class="page-title">My Fines</div><div class="page-subtitle">Overdue fines to be paid at library desk</div></div>
+      </div>
+      <div id="fine-alert"></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrapper"><table>
+            <thead><tr><th>Book ID</th><th>Days Late</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody id="fines-body"><tr><td colspan="4"><div class="empty-state"><div class="empty-icon">💰</div><p>No fines</p></div></td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Reserve Modal -->
+<div class="modal-overlay" id="reserve-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Reserve Book</span>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Reserve <strong id="reserve-book-title"></strong>?</p>
+      <p style="font-size:0.85rem;color:var(--clr-muted);margin-top:8px;">You'll be notified when the book is available for pickup.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('reserve-modal')">Cancel</button>
+      <button class="btn btn-primary" id="confirm-reserve-btn" onclick="confirmReserve()">Reserve</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  const user = auth.require('student');
+  renderNavUser(user);
+  document.getElementById('dash-subtitle').textContent = `Hello, ${user.Name} — ${user.Class || ''} ${user.Section || ''}`;
+
+  let pendingReserveId = null;
+
+  function showSection(name) {
+    document.querySelectorAll('main section').forEach(s => s.style.display = 'none');
+    document.getElementById('sec-' + name).style.display = 'block';
+    document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+    event?.target?.closest('a')?.classList.add('active');
+    const loaders = { dashboard: loadDashboard, catalog: () => {}, 'my-books': loadMyBooks, reservations: loadReservations, fines: loadFines };
+    loaders[name]?.();
+  }
+
+  // ── Dashboard ─────────────────────────────────────────────
+
+  async function loadDashboard() {
+    const [issued, fines, reservations] = await Promise.all([
+      api.getIssuedBooks({ userId: user.StudentID, status: 'Issued' }),
+      api.getFines({ userId: user.StudentID, status: 'Unpaid' }),
+      api.getReservations({ userId: user.StudentID, status: 'Waiting' })
+    ]);
+    const recs = issued.records || [];
+    const overdue = recs.filter(r => isOverdue(r.DueDate));
+
+    document.getElementById('student-stats').innerHTML = `
+      <div class="stat-card blue"><div class="stat-label">Books Borrowed</div><div class="stat-value">${recs.length}</div></div>
+      <div class="stat-card red"><div class="stat-label">Overdue</div><div class="stat-value">${overdue.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Reservations</div><div class="stat-value">${(reservations.records||[]).length}</div></div>
+      <div class="stat-card red"><div class="stat-label">Unpaid Fines</div><div class="stat-value">₹${(fines.fines||[]).reduce((s,f)=>s+Number(f.Amount||0),0)}</div></div>
+    `;
+    renderIssuedTable('dash-books-body', recs);
+  }
+
+  function renderIssuedTable(tbodyId, recs) {
+    const tbody = document.getElementById(tbodyId);
+    if (!recs.length) { tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📖</div><p>No borrowed books</p></div></td></tr>`; return; }
+    tbody.innerHTML = recs.map(r => {
+      const overdue = isOverdue(r.DueDate) && r.Status === 'Issued';
+      const status  = overdue ? 'Overdue' : r.Status;
+      return `<tr>
+        <td><strong>${escHtml(r.BookTitle)}</strong></td>
+        <td>${formatDate(r.IssuedDate)}</td>
+        <td style="color:${overdue?'var(--clr-danger)':''}">${formatDate(r.DueDate)}</td>
+        <td>${statusBadge(status)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Catalog ───────────────────────────────────────────────
+
+  document.getElementById('catalog-search').addEventListener('keydown', e => { if (e.key === 'Enter') searchBooks(); });
+
+  async function searchBooks() {
+    const q = document.getElementById('catalog-search').value.trim();
+    const tbody = document.getElementById('catalog-body');
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px">Searching...</td></tr>`;
+    const res = await api.getBooks({ search: q });
+    const books = res.books || [];
+    if (!books.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📚</div><p>No books found</p></div></td></tr>`; return; }
+    tbody.innerHTML = books.map(b => `
+      <tr>
+        <td><strong>${escHtml(b.Title)}</strong></td>
+        <td>${escHtml(b.Author)}</td>
+        <td>${escHtml(b.Genre)}</td>
+        <td><small>${escHtml(b.ShelfLocation)}</small></td>
+        <td>${availabilityBadge(b.AvailableCopies)}</td>
+        <td>
+          ${Number(b.AvailableCopies) < 1
+            ? `<button class="btn btn-sm btn-outline" data-id="${escHtml(String(b.BookID))}" data-title="${escHtml(b.Title)}" onclick="openReserve(this.dataset.id,this.dataset.title)">Reserve</button>`
+            : `<span style="color:var(--clr-muted);font-size:0.8rem">Available at desk</span>`}
+        </td>
+      </tr>`).join('');
+  }
+
+  function openReserve(bookId, title) {
+    pendingReserveId = bookId;
+    document.getElementById('reserve-book-title').textContent = title;
+    openModal('reserve-modal');
+  }
+
+  async function confirmReserve() {
+    const btn = document.getElementById('confirm-reserve-btn');
+    setLoading(btn, true);
+    try {
+      await api.reserveBook({ bookId: pendingReserveId, userId: user.StudentID, userRole: 'student' });
+      showToast('Book reserved successfully!', 'success');
+      closeModal('reserve-modal');
+    } finally { setLoading(btn, false); }
+  }
+
+  // ── My Books ──────────────────────────────────────────────
+
+  async function loadMyBooks() {
+    const res = await api.getIssuedBooks({ userId: user.StudentID });
+    renderIssuedTable('my-books-body', res.records || []);
+  }
+
+  // ── Reservations ──────────────────────────────────────────
+
+  async function loadReservations() {
+    const res = await api.getReservations({ userId: user.StudentID });
+    const tbody = document.getElementById('res-body');
+    const recs = res.records || [];
+    if (!recs.length) { tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🔖</div><p>No reservations</p></div></td></tr>`; return; }
+    tbody.innerHTML = recs.map(r => `
+      <tr>
+        <td><strong>${escHtml(r.BookTitle)}</strong></td>
+        <td>${formatDate(r.ReservedDate)}</td>
+        <td>${statusBadge(r.Status)}</td>
+        <td>${r.Status === 'Waiting' ? `<button class="btn btn-sm btn-danger" data-id="${escHtml(String(r.ReservationID))}" onclick="cancelRes(this.dataset.id)">Cancel</button>` : '—'}</td>
+      </tr>`).join('');
+  }
+
+  async function cancelRes(id) {
+    if (!window.confirm('Cancel this reservation?')) return;
+    await api.cancelReservation({ reservationId: id });
+    showToast('Reservation cancelled', 'info');
+    loadReservations();
+  }
+
+  // ── Fines ─────────────────────────────────────────────────
+
+  async function loadFines() {
+    const res = await api.getFines({ userId: user.StudentID });
+    const fines = res.fines || [];
+    const unpaid = fines.filter(f => f.Status === 'Unpaid');
+    const total  = unpaid.reduce((s,f) => s + Number(f.Amount||0), 0);
+    const alertEl = document.getElementById('fine-alert');
+    alertEl.innerHTML = total > 0
+      ? `<div class="alert alert-danger">You have ₹${total} in unpaid fines. Please pay at the library desk.</div>`
+      : `<div class="alert alert-success">No unpaid fines. Keep it up!</div>`;
+    const tbody = document.getElementById('fines-body');
+    if (!fines.length) { tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">💰</div><p>No fines on record</p></div></td></tr>`; return; }
+    tbody.innerHTML = fines.map(f => `
+      <tr>
+        <td><small>${f.BookID}</small></td>
+        <td>${f.DaysLate} days</td>
+        <td>₹${f.Amount}</td>
+        <td>${statusBadge(f.Status)}</td>
+      </tr>`).join('');
+  }
+
+  // Load dashboard on start
+  loadDashboard();
+</script>
+</body>
+</html>

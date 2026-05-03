@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>School Library — Login</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--clr-primary); }
+  .login-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 860px;
+    max-width: 96vw;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+  }
+  .login-left {
+    background: linear-gradient(160deg, #1a3a5c 0%, #0d2340 100%);
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #fff;
+  }
+  .login-left .logo { font-family: var(--font-display); font-size: 3rem; margin-bottom: 8px; }
+  .login-left h1 { font-size: 1.6rem; margin-bottom: 12px; }
+  .login-left p { font-size: 0.9rem; opacity: 0.7; line-height: 1.8; }
+  .decorative-line { width: 48px; height: 3px; background: var(--clr-accent); border-radius: 2px; margin: 20px 0; }
+  .role-pills { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; }
+  .role-pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1.5px solid transparent;
+  }
+  .role-pill[data-r="student"] { background: rgba(30,107,69,0.25); color: #a3e8c0; border-color: rgba(30,107,69,0.4); }
+  .role-pill[data-r="teacher"] { background: rgba(92,58,138,0.25); color: #d4b8f5; border-color: rgba(92,58,138,0.4); }
+  .role-pill[data-r="admin"]   { background: rgba(138,28,28,0.25); color: #f5b8b8; border-color: rgba(138,28,28,0.4); }
+  .role-pill.selected[data-r="student"] { background: rgba(30,107,69,0.5); }
+  .role-pill.selected[data-r="teacher"] { background: rgba(92,58,138,0.5); }
+  .role-pill.selected[data-r="admin"]   { background: rgba(138,28,28,0.5); }
+  .login-right { background: var(--clr-surface); padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; }
+  .login-right h2 { font-size: 1.4rem; color: var(--clr-primary); margin-bottom: 4px; }
+  .login-right .sub { font-size: 0.85rem; color: var(--clr-muted); margin-bottom: 28px; }
+  .error-msg { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; border-radius: 6px; padding: 10px 14px; font-size: 0.85rem; margin-bottom: 16px; display: none; }
+  .btn-login { width: 100%; justify-content: center; padding: 11px; font-size: 0.95rem; margin-top: 4px; }
+  .footer-note { font-size: 0.75rem; color: var(--clr-muted); text-align: center; margin-top: 20px; }
+  @media (max-width: 640px) {
+    .login-wrap { grid-template-columns: 1fr; }
+    .login-left { padding: 32px 24px; }
+    .login-right { padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-left">
+    <div class="logo">📚</div>
+    <h1>School Library<br>Management</h1>
+    <div class="decorative-line"></div>
+    <p>Track books, manage members,<br>handle fines & reservations — all in one place.</p>
+    <div class="role-pills">
+      <div class="role-pill selected" data-r="student" onclick="selectRole('student')">Student</div>
+      <div class="role-pill" data-r="teacher" onclick="selectRole('teacher')">Teacher</div>
+      <div class="role-pill" data-r="admin" onclick="selectRole('admin')">Admin</div>
+    </div>
+  </div>
+
+  <div class="login-right">
+    <h2 id="login-heading">Student Login</h2>
+    <p class="sub">Enter your credentials to continue</p>
+
+    <div class="error-msg" id="err-msg"></div>
+
+    <div class="form-group">
+      <label class="form-label">Username / ID</label>
+      <input type="text" class="form-control" id="username" placeholder="Enter username" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" class="form-control" id="password" placeholder="Enter password" autocomplete="current-password">
+    </div>
+
+    <button class="btn btn-primary btn-login" id="login-btn" onclick="doLogin()">Sign In →</button>
+    <p class="footer-note">Contact admin if you forgot your password.</p>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  let currentRole = 'student';
+
+  // Redirect if already logged in
+  const existing = auth.load();
+  if (existing) {
+    window.location.href = existing.role + '-panel.html';
+  }
+
+  function selectRole(role) {
+    currentRole = role;
+    document.querySelectorAll('.role-pill').forEach(p => p.classList.remove('selected'));
+    document.querySelector(`.role-pill[data-r="${role}"]`).classList.add('selected');
+    const labels = { student: 'Student Login', teacher: 'Teacher Login', admin: 'Admin Login' };
+    document.getElementById('login-heading').textContent = labels[role];
+  }
+
+  document.getElementById('password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  async function doLogin() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const errEl = document.getElementById('err-msg');
+    const btn   = document.getElementById('login-btn');
+    errEl.style.display = 'none';
+
+    if (!username || !password) {
+      errEl.textContent = 'Please enter username and password.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    setLoading(btn, true);
+    try {
+      const res = await api.login({ username, password, role: currentRole });
+      auth.save(res.user, res.role);
+      showToast('Login successful!', 'success');
+      setTimeout(() => { window.location.href = res.role + '-panel.html'; }, 300);
+    } catch (err) {
+      errEl.textContent = err.message || 'Login failed.';
+      errEl.style.display = 'block';
+    } finally {
+      setLoading(btn, false);
+    }
+  }
+</script>
+</body>
+</html>
