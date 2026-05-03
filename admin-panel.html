@@ -163,10 +163,18 @@
     <!-- Fines -->
     <section id="sec-fines" style="display:none">
       <div class="page-header"><div><div class="page-title">Fines Management</div></div></div>
+      <div class="stats-grid" id="fines-stats" style="margin-bottom:20px"></div>
       <div class="card">
+        <div class="card-header">
+          <select class="form-control" style="width:auto" id="fines-filter" onchange="loadAdminFines()">
+            <option value="">All Fines</option>
+            <option value="Unpaid">Unpaid Only</option>
+            <option value="Paid">Paid Only</option>
+          </select>
+        </div>
         <div class="card-body">
           <div class="table-wrapper"><table>
-            <thead><tr><th>Fine ID</th><th>Member ID</th><th>Role</th><th>Book ID</th><th>Days Late</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+            <thead><tr><th>Fine ID</th><th>Member ID</th><th>Role</th><th>Book</th><th>Days Late</th><th>Amount</th><th>Status</th><th>Paid On</th><th>Action</th></tr></thead>
             <tbody id="admin-fines-body"></tbody>
           </table></div>
         </div>
@@ -501,27 +509,45 @@
   // ── Fines ─────────────────────────────────────────────────
 
   async function loadAdminFines() {
-    const res = await api.getFines({});
-    const tbody = document.getElementById('admin-fines-body');
+    const statusFilter = document.getElementById('fines-filter')?.value || '';
+    const res   = await api.getFines(statusFilter ? { status: statusFilter } : {});
     const fines = res.fines || [];
-    if (!fines.length) { tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">💰</div><p>No fines recorded</p></div></td></tr>`; return; }
+
+    // Summary stats
+    const unpaidTotal     = fines.filter(f=>f.Status==='Unpaid').reduce((s,f)=>s+Number(f.Amount||0),0);
+    const collectedTotal  = fines.filter(f=>f.Status==='Paid'  ).reduce((s,f)=>s+Number(f.Amount||0),0);
+    const statsEl = document.getElementById('fines-stats');
+    if (statsEl) statsEl.innerHTML = `
+      <div class="stat-card red">  <div class="stat-label">Unpaid</div>   <div class="stat-value">₹${unpaidTotal}</div>   <div class="stat-sub">${fines.filter(f=>f.Status==='Unpaid').length} records</div></div>
+      <div class="stat-card green"><div class="stat-label">Collected</div> <div class="stat-value">₹${collectedTotal}</div> <div class="stat-sub">${fines.filter(f=>f.Status==='Paid').length} records</div></div>
+      <div class="stat-card blue"> <div class="stat-label">Total</div>     <div class="stat-value">${fines.length}</div>    <div class="stat-sub">all records</div></div>
+    `;
+
+    const tbody = document.getElementById('admin-fines-body');
+    if (!fines.length) {
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">💰</div><p>No fines recorded</p></div></td></tr>`;
+      return;
+    }
     tbody.innerHTML = fines.map(f => `
       <tr>
-        <td><small>${f.FineID}</small></td>
-        <td><small>${f.UserID}</small></td>
-        <td>${f.UserRole}</td>
-        <td><small>${f.BookID}</small></td>
-        <td>${f.DaysLate}</td>
-        <td>₹${f.Amount}</td>
+        <td><small>${escHtml(String(f.FineID||''))}</small></td>
+        <td><small>${escHtml(String(f.UserID||''))}</small></td>
+        <td>${escHtml(String(f.UserRole||''))}</td>
+        <td><strong>${escHtml(String(f.BookTitle||f.BookID||''))}</strong></td>
+        <td style="color:var(--clr-danger);font-weight:600">${f.DaysLate} days</td>
+        <td style="font-weight:600">₹${f.Amount}</td>
         <td>${statusBadge(f.Status)}</td>
-        <td>${f.Status==='Unpaid'?`<button class="btn btn-sm btn-accent" data-id="${escHtml(String(f.FineID))}" onclick="markPaid(this.dataset.id)">Mark Paid</button>`:'—'}</td>
+        <td>${f.PaidDate ? formatDate(String(f.PaidDate)) : '—'}</td>
+        <td>${f.Status==='Unpaid'
+          ? `<button class="btn btn-sm btn-accent" data-id="${escHtml(String(f.FineID))}" onclick="markPaid(this.dataset.id)">Mark Paid</button>`
+          : '<span style="color:var(--clr-success)">✓ Paid</span>'}</td>
       </tr>`).join('');
   }
 
   async function markPaid(fineId) {
-    if (!window.confirm('Mark this fine as paid?')) return;
-    await api.payFine({ fineId });
-    showToast('Fine marked as paid', 'success');
+    if (!window.confirm('Mark this fine as paid? This cannot be undone.')) return;
+    await api.payFine({ fineId, markedBy: user.AdminID });
+    showToast('Fine marked as paid ✓', 'success');
     loadAdminFines();
   }
 
