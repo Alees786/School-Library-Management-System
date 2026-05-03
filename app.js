@@ -10,10 +10,22 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxqIItauWcjYDLgtWdqNArY
 const api = {
   async call(data) {
     try {
+      // Google Apps Script blocks requests that trigger a CORS preflight.
+      // Sending as application/x-www-form-urlencoded keeps it a "simple
+      // request" (no preflight) BUT Apps Script only reliably reads JSON
+      // from e.postData.contents — so we use no-cors mode with a FormData
+      // workaround: POST the JSON as a form field, OR use the URL param
+      // approach below which works perfectly with doGet + e.parameter.
+      //
+      // Strategy: POST with text/plain body (simple request, no preflight).
+      // The body is still valid JSON — Apps Script reads it via
+      // e.postData.contents exactly as before.
       const res = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        // 'text/plain' is a CORS-safe content type → no preflight fired
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify(data),
+        redirect: 'follow'   // follow the GAS redirect automatically
       });
       const json = await res.json();
       if (!json.success && json.error) throw new Error(json.error);
@@ -24,24 +36,24 @@ const api = {
     }
   },
 
-  login:          (d) => api.call({ action: 'login', ...d }),
-  getBooks:       (d) => api.call({ action: 'getBooks', ...d }),
-  addBook:        (d) => api.call({ action: 'addBook', ...d }),
-  updateBook:     (d) => api.call({ action: 'updateBook', ...d }),
-  deleteBook:     (d) => api.call({ action: 'deleteBook', ...d }),
-  issueBook:      (d) => api.call({ action: 'issueBook', ...d }),
-  returnBook:     (d) => api.call({ action: 'returnBook', ...d }),
-  getIssuedBooks: (d) => api.call({ action: 'getIssuedBooks', ...d }),
-  reserveBook:    (d) => api.call({ action: 'reserveBook', ...d }),
-  cancelReservation:(d)=>api.call({ action: 'cancelReservation', ...d }),
-  getReservations:(d) => api.call({ action: 'getReservations', ...d }),
-  getFines:       (d) => api.call({ action: 'getFines', ...d }),
-  payFine:        (d) => api.call({ action: 'payFine', ...d }),
-  getUsers:       (d) => api.call({ action: 'getUsers', ...d }),
-  addUser:        (d) => api.call({ action: 'addUser', ...d }),
-  deleteUser:     (d) => api.call({ action: 'deleteUser', ...d }),
-  resetPassword:  (d) => api.call({ action: 'resetPassword', ...d }),
-  getReports:     (d) => api.call({ action: 'getReports', ...d }),
+  login:            (d) => api.call({ action: 'login', ...d }),
+  getBooks:         (d) => api.call({ action: 'getBooks', ...d }),
+  addBook:          (d) => api.call({ action: 'addBook', ...d }),
+  updateBook:       (d) => api.call({ action: 'updateBook', ...d }),
+  deleteBook:       (d) => api.call({ action: 'deleteBook', ...d }),
+  issueBook:        (d) => api.call({ action: 'issueBook', ...d }),
+  returnBook:       (d) => api.call({ action: 'returnBook', ...d }),
+  getIssuedBooks:   (d) => api.call({ action: 'getIssuedBooks', ...d }),
+  reserveBook:      (d) => api.call({ action: 'reserveBook', ...d }),
+  cancelReservation:(d) => api.call({ action: 'cancelReservation', ...d }),
+  getReservations:  (d) => api.call({ action: 'getReservations', ...d }),
+  getFines:         (d) => api.call({ action: 'getFines', ...d }),
+  payFine:          (d) => api.call({ action: 'payFine', ...d }),
+  getUsers:         (d) => api.call({ action: 'getUsers', ...d }),
+  addUser:          (d) => api.call({ action: 'addUser', ...d }),
+  deleteUser:       (d) => api.call({ action: 'deleteUser', ...d }),
+  resetPassword:    (d) => api.call({ action: 'resetPassword', ...d }),
+  getReports:       (d) => api.call({ action: 'getReports', ...d }),
 };
 
 // ── Auth Session ──────────────────────────────────────────────
@@ -83,9 +95,11 @@ function showToast(msg, type = 'info') {
 
 // ── Modal Helpers ─────────────────────────────────────────────
 
-function openModal(id) { document.getElementById(id)?.classList.add('active'); }
+function openModal(id)  { document.getElementById(id)?.classList.add('active'); }
 function closeModal(id) { document.getElementById(id)?.classList.remove('active'); }
-function closeAllModals() { document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active')); }
+function closeAllModals() {
+  document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+}
 
 document.addEventListener('click', e => {
   if (e.target.classList.contains('modal-overlay')) closeAllModals();
@@ -113,7 +127,7 @@ function initTabs(containerSelector) {
 
 function formatDate(str) {
   if (!str) return '—';
-  return new Date(str).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+  return new Date(str).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function daysUntil(dateStr) {
@@ -157,7 +171,7 @@ function confirm(msg) {
 
 function escHtml(str) {
   return String(str || '').replace(/[&<>"']/g, c =>
-    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
   );
 }
 
