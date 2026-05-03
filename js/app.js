@@ -165,10 +165,6 @@ function setLoading(btn, loading) {
   }
 }
 
-function confirm(msg) {
-  return window.confirm(msg);
-}
-
 function escHtml(str) {
   return String(str || '').replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
