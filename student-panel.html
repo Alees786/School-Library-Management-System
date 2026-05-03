@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student Panel — Library</title>
+<title>Student Panel — Nusrath Library</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <!-- Navbar -->
 <nav class="navbar">
-  <a class="navbar-brand" href="index.html"><span class="brand-icon">📚</span> School Library</a>
+  <a class="navbar-brand" href="index.html"><span class="brand-icon">📚</span> Nusrath School Library</a>
   <div class="navbar-actions" id="nav-user"></div>
 </nav>
 
@@ -35,7 +35,7 @@
       <div class="page-header">
         <div>
           <div class="page-title">Welcome back!</div>
-          <div class="page-subtitle" id="dash-subtitle">Loading your library summary...</div>
+          <div class="page-subtitle" id="dash-subtitle">Loading Nusrath School library summary...</div>
         </div>
       </div>
       <div class="stats-grid" id="student-stats"></div>
@@ -107,7 +107,7 @@
     <!-- Fines -->
     <section id="sec-fines" style="display:none">
       <div class="page-header">
-        <div><div class="page-title">My Fines</div><div class="page-subtitle">Overdue fines to be paid at library desk</div></div>
+        <div><div class="page-title">My Fines</div><div class="page-subtitle">Overdue fines to be paid at Nusrath library desk</div></div>
       </div>
       <div id="fine-alert"></div>
       <div class="card">
@@ -274,7 +274,7 @@
     const total  = unpaid.reduce((s,f) => s + Number(f.Amount||0), 0);
     const alertEl = document.getElementById('fine-alert');
     alertEl.innerHTML = total > 0
-      ? `<div class="alert alert-danger">You have ₹${total} in unpaid fines. Please pay at the library desk.</div>`
+      ? `<div class="alert alert-danger">You have ₹${total} in unpaid fines. Please pay at the Nusrath Secondary School library desk.</div>`
       : `<div class="alert alert-success">No unpaid fines. Keep it up!</div>`;
     const tbody = document.getElementById('fines-body');
     if (!fines.length) { tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">💰</div><p>No fines on record</p></div></td></tr>`; return; }
